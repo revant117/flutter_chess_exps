@@ -2,6 +2,8 @@ import 'package:chess/chess.dart' as dc;
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:wp_chessboard/wp_chessboard.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '/bloc/board_state.dart';
 
 void main() {
   runApp(
@@ -17,7 +19,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: ChessBoard(initalFen: startingFen),
+      body: Lesson(),
     );
   }
 }
@@ -93,6 +95,7 @@ class ChessBoardState extends State<ChessBoard> {
     final currentFen = turnWhite(chess.fen);
     controller.setFen(currentFen, animation: animated);
     chess.load(currentFen, check_validity: false);
+    context.read<BoardStateBloc>().add(BoardStateChanged(currentFen));
   }
 
   void onEmptyFieldTap(SquareInfo square) {
@@ -157,6 +160,32 @@ class ChessBoardState extends State<ChessBoard> {
     fen = widget.initalFen;
     chess.load(fen, check_validity: false);
     controller.setFen(fen);
+  }
+}
+
+class Lesson extends StatelessWidget {
+  const Lesson({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: BlocProvider<BoardStateBloc>(
+      create: (context) => BoardStateBloc(startingFen),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          const Flexible(child: ChessBoard(initalFen: startingFen)),
+          Flexible(
+            child: BlocBuilder<BoardStateBloc, BoardState>(
+              builder: (context, state) {
+                return Text('Move count: ${state.moveCount}');
+              },
+            ),
+          )
+        ],
+      ),
+    ));
   }
 }
 
